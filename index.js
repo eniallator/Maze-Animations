@@ -75,7 +75,7 @@ function drawCell([y, x]) {
   );
 }
 
-let lastRun;
+let startTime, lastRun;
 function draw() {
   const now = new Date().getTime();
   const cellsToFill = Math.min(
@@ -87,6 +87,7 @@ function draw() {
   const cellsFilled = generateMaze(cellsToFill);
   emptyCellsCount -= cellsFilled.length;
   $("#curr-memory-number").text(endIndex - startIndex);
+  $("#time-taken").text(`${(now - startTime) / 1000} sec`);
 
   cellsFilled.forEach(drawCell);
   $("#empty-cells-number").text(emptyCellsCount);
@@ -112,7 +113,7 @@ paramConfig.addListener(
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    lastRun = new Date().getTime();
+    startTime = lastRun = new Date().getTime();
     maze = new Array(height).fill().map(() => new Array(width).fill(-1));
     toExpand = [[Math.floor(height / 2), Math.floor(width / 2)]];
     maze[toExpand[0][0]][toExpand[0][1]] = 0;
