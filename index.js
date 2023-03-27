@@ -130,6 +130,6 @@ window.resizeCallback = function () {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   maze?.forEach((row, y) =>
-    row.forEach((val, x) => val > 0 && drawCell([y, x]))
+    row.forEach((val, x) => val >= 0 && drawCell([y, x]))
   );
 };
