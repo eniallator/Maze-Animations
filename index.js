@@ -122,7 +122,7 @@ paramConfig.addListener(
 
     draw();
   },
-  ["width", "height"]
+  ["width", "height", "reset"]
 );
 
 window.resizeCallback = function () {
