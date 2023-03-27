@@ -78,8 +78,9 @@ function drawCell([y, x]) {
 let lastRun;
 function draw() {
   const now = new Date().getTime();
-  const cellsToFill = Math.round(
-    ((now - lastRun) / 1000) * paramConfig.getVal("iter-per-sec")
+  const cellsToFill = Math.min(
+    Math.round(((now - lastRun) / 1000) * paramConfig.getVal("iter-per-sec")),
+    paramConfig.getVal("iter-per-sec") / 10
   );
   lastRun = now;
 
