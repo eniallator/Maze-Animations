@@ -7,7 +7,23 @@ let toExpand,
   maze,
   iterations,
   maxStackSize,
-  emptyCellsCount;
+  emptyCellsCount,
+  templateImgEl,
+  templateData;
+
+const templateCellEmpty = (x, y) => {
+  return (
+    templateData == null ||
+    new Array(templateData.colorSpace.length)
+      .fill()
+      .map(
+        (_, offset) =>
+          templateData.colorSpace.length * (y * templateData.height + x) +
+          offset
+      )
+      .every((i) => templateData.data[i] === 0)
+  );
+};
 
 const directions = [
   [1, 0],
@@ -35,7 +51,9 @@ function generateMaze(numIterations) {
 
     const blankNeighbours = directions
       .map(([y, x]) => [y + cell[0], x + cell[1]])
-      .filter(([y, x]) => (maze[y]?.[x] ?? 0) === -1);
+      .filter(
+        ([y, x]) => (maze[y]?.[x] ?? 0) === -1 && templateCellEmpty(x, y)
+      );
 
     let nextCell = null;
     if (blankNeighbours.length === 1) {
@@ -61,8 +79,10 @@ function drawCell([y, x]) {
   ctx.fillStyle = `hsl(${
     (maze[y][x] / paramConfig.getVal("colour-cycle-freq")) % 360
   }, 100%, 50%)`;
-  const cellWidth = canvas.width / paramConfig.getVal("width");
-  const cellHeight = canvas.height / paramConfig.getVal("height");
+  const width = templateData?.width ?? paramConfig.getVal("width");
+  const height = templateData?.height ?? paramConfig.getVal("height");
+  const cellWidth = canvas.width / width;
+  const cellHeight = canvas.height / height;
   ctx.fillRect(
     Math.round(x * cellWidth),
     Math.round(y * cellHeight),
@@ -102,23 +122,82 @@ function draw() {
   }
 }
 
-paramConfig.addListener(
-  ({ width, height }) => {
-    ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+const resetMaze = (width, height) => {
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    startTime = lastRun = new Date().getTime();
-    maze = new Array(height).fill().map(() => new Array(width).fill(-1));
+  if (templateData) {
+    ctx.drawImage(templateImgEl, 0, 0, canvas.width, canvas.height);
+    let closestCell, closestDist;
+    maze = new Array(height).fill().map((_, y) =>
+      new Array(width).fill().map((_, x) => {
+        let dist = (y - height / 2) ** 2 + (x - width / 2) ** 2;
+        if (
+          templateCellEmpty(x, y) &&
+          (closestCell == null || dist < closestDist)
+        ) {
+          closestCell = [y, x];
+          closestDist = dist;
+        }
+        return -1;
+      })
+    );
+    if (closestCell != null) {
+      toExpand = [closestCell];
+    }
+  } else {
     toExpand = [[Math.floor(height / 2), Math.floor(width / 2)]];
-    maze[toExpand[0][0]][toExpand[0][1]] = 0;
-    startIndex = iterations = maxStackSize = 0;
-    endIndex = 1;
-    emptyCellsCount = width * height - 1;
-    drawCell(toExpand[0]);
+    maze = new Array(height).fill().map(() => new Array(width).fill(-1));
+  }
 
-    draw();
+  startTime = lastRun = new Date().getTime();
+  maze[toExpand[0][0]][toExpand[0][1]] = 0;
+  startIndex = iterations = maxStackSize = 0;
+  endIndex = 1;
+  emptyCellsCount = width * height - 1;
+  drawCell(toExpand[0]);
+
+  draw();
+};
+
+paramConfig.addListener(
+  ({ width, height, "template-image": templateImage }) => {
+    if (templateImage == null) {
+      resetMaze(width, height);
+    }
   },
   ["width", "height", "reset"]
+);
+
+paramConfig.addListener(
+  ({ "template-image": templateImage }) => {
+    if (templateImage != null) {
+      new Promise((res, rej) => {
+        const imgCanvas = document.createElement("canvas");
+        const imgCtx = imgCanvas.getContext("2d");
+        templateImgEl = new Image();
+        templateImgEl.addEventListener("load", () => {
+          imgCanvas.width = templateImgEl.width;
+          imgCanvas.height = templateImgEl.height;
+          imgCtx.drawImage(
+            templateImgEl,
+            0,
+            0,
+            templateImgEl.width,
+            templateImgEl.height
+          );
+          res(
+            imgCtx.getImageData(0, 0, templateImgEl.width, templateImgEl.height)
+          );
+        });
+        templateImgEl.src = templateImage;
+      }).then((data) => {
+        templateData = data;
+        resetMaze(data.width, data.height);
+      });
+    }
+  },
+  ["template-image", "reset"]
 );
 
 window.resizeCallback = function () {

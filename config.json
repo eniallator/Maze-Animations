@@ -52,6 +52,14 @@
         }
     },
     {
+        "id": "template-image",
+        "text": "Template Image",
+        "type": "file",
+        "attrs": {
+            "accept": "image/*"
+        }
+    },
+    {
         "id": "reset",
         "text": "Reset",
         "type": "button"
