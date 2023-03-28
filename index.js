@@ -58,13 +58,9 @@ function generateMaze(numIterations) {
 }
 
 function drawCell([y, x]) {
-  // ctx.fillStyle = `hsl(${
-  //   ((maze[y][x] / paramConfig.getVal("width")) * 10) % 360
-  // }, 100%, 50%)`;
   ctx.fillStyle = `hsl(${
     (maze[y][x] / paramConfig.getVal("colour-cycle-freq")) % 360
   }, 100%, 50%)`;
-  // ctx.fillStyle = `hsl(${maze[y][x] % 360}, 100%, 50%)`;
   const cellWidth = canvas.width / paramConfig.getVal("width");
   const cellHeight = canvas.height / paramConfig.getVal("height");
   ctx.fillRect(
@@ -87,9 +83,9 @@ function draw() {
   const cellsFilled = generateMaze(cellsToFill);
   emptyCellsCount -= cellsFilled.length;
   $("#curr-memory-number").text(endIndex - startIndex);
-  $("#time-taken").text(`${(now - startTime) / 1000} sec`);
 
   cellsFilled.forEach(drawCell);
+  $("#time-taken").text(`${(now - startTime) / 1000} sec`);
   $("#empty-cells-number").text(emptyCellsCount);
   $("#efficiency-number").text(
     Math.round(
@@ -100,8 +96,6 @@ function draw() {
   );
   $("#iterations-number").text(iterations);
   $("#max-memory-number").text(maxStackSize);
-
-  // Animation code
 
   if (endIndex > startIndex) {
     requestAnimationFrame(draw);
