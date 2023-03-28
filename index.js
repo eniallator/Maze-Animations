@@ -204,6 +204,10 @@ window.resizeCallback = function () {
   ctx.fillStyle = "black";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  if (templateData) {
+    ctx.drawImage(templateImgEl, 0, 0, canvas.width, canvas.height);
+  }
+
   maze?.forEach((row, y) =>
     row.forEach((val, x) => val >= 0 && drawCell([y, x]))
   );
